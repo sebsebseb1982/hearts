@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGame, submitPass, playCard, redactStateForSeat } from "../src/engine.js";
+import { createGame, submitPass, playCard, advanceAfterTrick, redactStateForSeat } from "../src/engine.js";
 import { chooseMove, chooseTrickMove } from "../src/bot.js";
 
 function playFullGameWithBots(seed, roundsTotal) {
@@ -15,6 +15,11 @@ function playFullGameWithBots(seed, roundsTotal) {
         const move = chooseMove(view);
         s = submitPass(s, seat, move.cards);
       }
+      continue;
+    }
+
+    if (s.trickJustCompleted) {
+      s = advanceAfterTrick(s);
       continue;
     }
 

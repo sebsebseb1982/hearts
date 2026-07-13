@@ -13,6 +13,10 @@
   $: roster = $roomState?.roster ?? [];
   $: myTurn = view && view.phase === "playing" && view.turnSeat === view.seat;
   $: legalMoves = view && myTurn ? legalMovesFromView(view) : [];
+  $: winnerName =
+    view?.trickJustCompleted &&
+    (roster.find((r) => r.seat === view.trickJustCompleted.winner)?.name ??
+      `Seat ${view.trickJustCompleted.winner + 1}`);
 
   async function playCard(event) {
     const card = event.detail;
@@ -34,16 +38,23 @@
     {/if}
 
     <div class="status">
-      Round {view.roundIndex + 1} / {view.roundsTotal} — {view.direction} — {view.phase}
+      {#if winnerName}
+        🏆 {winnerName} won the trick
+      {:else}
+        Round {view.roundIndex + 1} / {view.roundsTotal} — {view.direction} — {view.phase}
+      {/if}
     </div>
 
-    <TrickArea
-      {roster}
-      {mySeat}
-      currentTrick={view.currentTrick}
-      handCounts={view.handCounts}
-      turnSeat={view.turnSeat}
-    />
+    <div class="trick-wrap">
+      <TrickArea
+        {roster}
+        {mySeat}
+        currentTrick={view.currentTrick}
+        handCounts={view.handCounts}
+        turnSeat={view.turnSeat}
+        trickJustCompleted={view.trickJustCompleted}
+      />
+    </div>
 
     {#if view.phase === "passing"}
       <PassPanel
@@ -75,10 +86,20 @@
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
-    max-width: 480px;
+    width: 100%;
+    max-width: min(1100px, 96vw);
+    height: 100%;
     margin: 0 auto;
   }
+  .trick-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .status {
+    flex: 0 0 auto;
     text-align: center;
     opacity: 0.8;
     font-size: 0.9em;

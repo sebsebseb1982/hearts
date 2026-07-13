@@ -45,6 +45,7 @@ function startPlayingPhase(state) {
   state.currentTrick = { leader: state.turnSeat, ledSuit: null, plays: [] };
   state.trickNumber = 0;
   state.heartsBroken = false;
+  state.trickJustCompleted = null;
 }
 
 function beginRound(state, roundIndex) {
@@ -56,6 +57,7 @@ function beginRound(state, roundIndex) {
   state.trickNumber = 0;
   state.heartsBroken = false;
   state.lastRoundResult = null;
+  state.trickJustCompleted = null;
 
   if (state.direction === "hold") {
     state.passSelections = [null, null, null, null];
@@ -248,7 +250,14 @@ function finishRound(state) {
   }
 }
 
-/** Validates and applies a play. Throws on illegal moves; never mutates the input state. */
+/**
+ * Validates and applies a play. Throws on illegal moves; never mutates the input state.
+ *
+ * When a play completes a trick (the 4th card), the trick is resolved (winner determined,
+ * cards taken) but `currentTrick` is deliberately left showing all 4 plays and `turnSeat` is
+ * set to `null` — nobody may act. This holds the finished trick on screen. Call
+ * `advanceAfterTrick` (typically after a short delay) to clear it and move on.
+ */
 export function playCard(state, seat, card) {
   const legal = legalMoves(state, seat);
   if (!legal.includes(card)) {
@@ -270,16 +279,33 @@ export function playCard(state, seat, card) {
     next.takenCards[winner] = next.takenCards[winner].concat(
       next.currentTrick.plays.map((p) => p.card),
     );
-    next.trickNumber += 1;
-    next.turnSeat = winner;
-
-    if (next.trickNumber === 13) {
-      finishRound(next);
-    } else {
-      next.currentTrick = { leader: winner, ledSuit: null, plays: [] };
-    }
+    next.trickJustCompleted = { winner };
+    next.turnSeat = null;
   } else {
     next.turnSeat = (seat + 1) % 4;
+  }
+
+  return next;
+}
+
+/**
+ * Clears a completed-and-shown trick and moves on: starts the next trick led by the winner,
+ * or ends the round (dealing the next one, or ending the game) if that was the 13th trick.
+ * No-op if no trick is currently pending display.
+ */
+export function advanceAfterTrick(state) {
+  if (!state.trickJustCompleted) return state;
+
+  const next = clone(state);
+  const winner = next.trickJustCompleted.winner;
+  next.trickJustCompleted = null;
+  next.trickNumber += 1;
+  next.turnSeat = winner;
+
+  if (next.trickNumber === 13) {
+    finishRound(next);
+  } else {
+    next.currentTrick = { leader: winner, ledSuit: null, plays: [] };
   }
 
   return next;
@@ -310,6 +336,7 @@ export function redactStateForSeat(state, seat) {
     trickNumber: state.trickNumber,
     heartsBroken: state.heartsBroken,
     turnSeat: state.turnSeat,
+    trickJustCompleted: state.trickJustCompleted,
     handCounts: state.hands.map((h) => h.length),
     scores: state.scores.slice(),
     roundHistory: state.roundHistory.slice(),

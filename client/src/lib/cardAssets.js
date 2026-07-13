@@ -5,7 +5,7 @@ export function cardImageSrc(card) {
   const rank = card[0];
   const suit = card[1];
   const rankName = RANK_NAMES[rank] ?? rank;
-  return `/cards/${rankName}_of_${SUIT_NAMES[suit]}.svg`;
+  return `/cards/${rankName}_of_${SUIT_NAMES[suit]}.png`;
 }
 
 const SUIT_SYMBOL = { C: "♣", D: "♦", H: "♥", S: "♠" };

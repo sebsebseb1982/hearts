@@ -4,12 +4,14 @@ import {
   createGame,
   submitPass,
   playCard,
+  advanceAfterTrick,
   redactStateForSeat,
   chooseMove,
 } from "@hearts/shared";
 
 const BOT_PASS_DELAY_MS = 300;
 const BOT_PLAY_DELAY_MS = 500;
+const TRICK_PAUSE_MS = Number(process.env.HEARTS_TRICK_PAUSE_MS) || 2500;
 
 function roomStatePayload(room) {
   return {
@@ -34,9 +36,26 @@ function broadcastGameState(io, room) {
   }
 }
 
+/**
+ * If the last play just completed a trick, holds it on screen for TRICK_PAUSE_MS, then clears
+ * it and keeps the game moving. Otherwise runs `onImmediate` right away (the normal case).
+ */
+function scheduleTrickAdvance(io, room, onImmediate) {
+  if (!room.game?.trickJustCompleted) {
+    onImmediate();
+    return;
+  }
+  setTimeout(() => {
+    if (!room.game?.trickJustCompleted) return; // room/game changed underneath us; bail out
+    room.game = advanceAfterTrick(room.game);
+    broadcastGameState(io, room);
+    driveBots(io, room);
+  }, TRICK_PAUSE_MS);
+}
+
 function driveBots(io, room) {
   const state = room.game;
-  if (!state || state.gameOver) return;
+  if (!state || state.gameOver || state.trickJustCompleted) return;
 
   if (state.phase === "passing") {
     const pending = room.seats.find(
@@ -59,7 +78,7 @@ function driveBots(io, room) {
       const move = chooseMove(view);
       room.game = playCard(room.game, seat.seat, move.card);
       broadcastGameState(io, room);
-      setTimeout(() => driveBots(io, room), BOT_PLAY_DELAY_MS);
+      scheduleTrickAdvance(io, room, () => setTimeout(() => driveBots(io, room), BOT_PLAY_DELAY_MS));
     }
   }
 }
@@ -165,7 +184,7 @@ export function registerSocketHandlers(io, store) {
         room.game = playCard(room.game, seat.seat, card);
         ack?.({ ok: true });
         broadcastGameState(io, room);
-        driveBots(io, room);
+        scheduleTrickAdvance(io, room, () => driveBots(io, room));
       } catch (err) {
         ack?.({ ok: false, error: err.message });
       }

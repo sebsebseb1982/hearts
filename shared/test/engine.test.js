@@ -4,6 +4,7 @@ import {
   submitPass,
   legalMoves,
   playCard,
+  advanceAfterTrick,
   computeRoundScores,
   redactStateForSeat,
 } from "../src/engine.js";
@@ -28,18 +29,23 @@ function baseState(overrides) {
     phase: "playing",
     turnSeat: 0,
     lastRoundResult: null,
+    trickJustCompleted: null,
     ...overrides,
   };
 }
 
-/** Plays exactly one trick (4 plays), always choosing the first legal move for the seat on turn. */
+/** Plays exactly one trick (4 plays) then advances past the completed-trick pause, always
+ * choosing the first legal move for the seat on turn. */
 function playOneTrick(state) {
   let s = state;
   for (let i = 0; i < 4; i++) {
-    if (s.phase !== "playing") break;
+    if (s.phase !== "playing" || s.trickJustCompleted) break;
     const seat = s.turnSeat;
     const moves = legalMoves(s, seat);
     s = playCard(s, seat, moves[0]);
+  }
+  if (s.trickJustCompleted) {
+    s = advanceAfterTrick(s);
   }
   return s;
 }
@@ -216,10 +222,25 @@ describe("trick play legality", () => {
     s = playCard(s, 2, "4C");
     s = playCard(s, 3, "KC");
 
+    // The trick is resolved but held on screen: nobody may act, and all 4 plays still show.
+    expect(s.turnSeat).toBeNull();
+    expect(s.trickJustCompleted).toEqual({ winner: 3 });
+    expect(s.currentTrick.plays.map((p) => p.card).sort()).toEqual(
+      ["2S", "4C", "9C", "KC"].sort(),
+    );
+    expect(s.takenCards[3].sort()).toEqual(["2S", "4C", "9C", "KC"].sort());
+    expect(legalMoves(s, 3)).toEqual([]); // nobody can play during the pause
+
+    s = advanceAfterTrick(s);
     expect(s.turnSeat).toBe(3);
+    expect(s.trickJustCompleted).toBeNull();
     expect(s.currentTrick.leader).toBe(3);
     expect(s.currentTrick.plays).toEqual([]);
-    expect(s.takenCards[3].sort()).toEqual(["2S", "4C", "9C", "KC"].sort());
+  });
+
+  it("advanceAfterTrick is a no-op when no trick is pending", () => {
+    const state = baseState({ currentTrick: { leader: 0, ledSuit: null, plays: [] } });
+    expect(advanceAfterTrick(state)).toBe(state);
   });
 });
 

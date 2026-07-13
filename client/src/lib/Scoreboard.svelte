@@ -5,9 +5,9 @@
   export let gameOver = false;
   export let winners = null;
 
-  function name(seat) {
-    return roster.find((r) => r.seat === seat)?.name ?? `Seat ${seat + 1}`;
-  }
+  // A derived value (not a plain function called from the markup) so Svelte's template
+  // tracks `roster` as a dependency and re-renders when it changes.
+  $: names = [0, 1, 2, 3].map((seat) => roster.find((r) => r.seat === seat)?.name ?? `Seat ${seat + 1}`);
 </script>
 
 <div class="scoreboard">
@@ -21,7 +21,7 @@
     <tbody>
       {#each [0, 1, 2, 3] as seat}
         <tr class:winner={gameOver && winners?.includes(seat)}>
-          <td>{name(seat)}</td>
+          <td>{names[seat]}</td>
           <td>{scores[seat]}</td>
         </tr>
       {/each}
@@ -36,7 +36,7 @@
           <li>
             Round {round.roundIndex + 1}: {round.scores.join(" / ")}
             {#if round.shooterSeat !== null}
-              — 🌟 {name(round.shooterSeat)} shot the star!
+              — 🌟 {names[round.shooterSeat]} shot the star!
             {/if}
           </li>
         {/each}
@@ -46,7 +46,7 @@
 
   {#if gameOver}
     <p class="final">
-      🏆 {winners?.map(name).join(" & ")} won with the lowest score!
+      🏆 {winners?.map((seat) => names[seat]).join(" & ")} won with the lowest score!
     </p>
   {/if}
 </div>

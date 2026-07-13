@@ -28,25 +28,36 @@
     <div class="offline">Reconnecting to server…</div>
   {/if}
 
-  {#if inGame}
-    <Table {mySeat} />
-  {:else}
-    <Lobby {roomIdFromUrl} on:joined={handleJoined} on:createNew={handleCreateNew} />
-  {/if}
+  <div class="content">
+    {#if inGame}
+      <Table {mySeat} />
+    {:else}
+      <Lobby {roomIdFromUrl} on:joined={handleJoined} on:createNew={handleCreateNew} />
+    {/if}
+  </div>
 </main>
 
 <style>
   main {
-    min-height: 100vh;
-    padding: 16px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
     box-sizing: border-box;
+    gap: 8px;
+  }
+  .content {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .offline {
+    flex: 0 0 auto;
     text-align: center;
     background: #7c2d12;
     color: #fed7aa;
     padding: 6px;
     border-radius: 6px;
-    margin-bottom: 12px;
   }
 </style>

@@ -6,6 +6,7 @@
   export let disabled = false;
   export let selected = false;
   export let small = false;
+  export let tiny = false;
 </script>
 
 {#if card}
@@ -16,6 +17,7 @@
     class:disabled
     class:selected
     class:small
+    class:tiny
     disabled={!interactive || disabled}
     on:click
     aria-label={cardLabel(card)}
@@ -23,24 +25,29 @@
     <img src={cardImageSrc(card)} alt={cardLabel(card)} draggable="false" />
   </button>
 {:else}
-  <div class="card back" class:small aria-hidden="true"></div>
+  <div class="card back" class:small class:tiny aria-hidden="true"></div>
 {/if}
 
 <style>
   .card {
-    width: 64px;
-    height: 90px;
+    height: clamp(90px, 15vh, 150px);
+    aspect-ratio: 5 / 7;
+    width: auto;
     border-radius: 6px;
     border: none;
     padding: 0;
     background: transparent;
     cursor: default;
     display: inline-flex;
+    flex: none;
     transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
   .card.small {
-    width: 48px;
-    height: 68px;
+    height: clamp(60px, 10vh, 100px);
+  }
+  .card.tiny {
+    height: clamp(30px, 5.5vh, 58px);
+    border-radius: 3px;
   }
   .card img {
     width: 100%;

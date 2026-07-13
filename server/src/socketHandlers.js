@@ -7,7 +7,7 @@ import {
   advanceAfterTrick,
   redactStateForSeat,
   chooseMove,
-} from "@hearts/shared";
+} from "@open-hearts/shared";
 
 const BOT_PASS_DELAY_MS = 300;
 const BOT_PLAY_DELAY_MS = 500;

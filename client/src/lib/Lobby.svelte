@@ -3,7 +3,7 @@
   import { request } from "./socket.js";
   import { roomState, errorMessage, clearError } from "./store.js";
   import { getStoredName, setStoredName, getSeatToken, setSeatToken } from "./identity.js";
-  import { ROUND_OPTIONS } from "@hearts/shared";
+  import { ROUND_OPTIONS } from "@open-hearts/shared";
 
   export let roomIdFromUrl = null;
 

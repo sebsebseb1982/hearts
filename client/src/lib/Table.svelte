@@ -5,7 +5,7 @@
   import Hand from "./Hand.svelte";
   import PassPanel from "./PassPanel.svelte";
   import Scoreboard from "./Scoreboard.svelte";
-  import { legalMovesFromView } from "@hearts/shared";
+  import { legalMovesFromView } from "@open-hearts/shared";
 
   export let mySeat;
 

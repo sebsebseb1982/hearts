@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import PlayingCard from "./PlayingCard.svelte";
-  import { sortHand } from "@hearts/shared";
+  import { sortHand } from "@open-hearts/shared";
   import { fanTransform } from "./fan.js";
 
   export let hand = [];

@@ -1,4 +1,4 @@
-# Dame de pique — online Hearts variant
+# Open Hearts — online Dame de pique (Hearts variant)
 
 An online, real-time 4-player Hearts variant with custom scoring, playable by sharing a room link.
 
@@ -53,6 +53,26 @@ npm test
 npm run build   # builds the client into client/dist
 npm start        # serves the built client + Socket.IO from a single Node process on $PORT (default 3001)
 ```
+
+## Docker
+
+Build and run the multi-stage image locally:
+
+```bash
+docker build -t open-hearts .
+docker run -p 3001:3001 open-hearts
+```
+
+Open http://localhost:3001.
+
+### CI: publish to Docker Hub
+
+`.github/workflows/docker-publish.yml` runs the test suite on every push and pull request, and on pushes to `master` (tag `latest`) or version tags `vX.Y.Z` (semver tags) it builds and pushes the image to Docker Hub as `<DOCKERHUB_USERNAME>/open-hearts`. Pull requests only build the image (no push), to validate the Dockerfile without needing registry credentials.
+
+Set these repository secrets (Settings → Secrets and variables → Actions) for the publish step to work:
+
+- `DOCKERHUB_USERNAME` — your Docker Hub username or organization
+- `DOCKERHUB_TOKEN` — a Docker Hub [access token](https://hub.docker.com/settings/security) (not your password)
 
 ## Notes
 

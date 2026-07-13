@@ -1,5 +1,5 @@
 {
-  "name": "@hearts/server",
+  "name": "@open-hearts/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "@hearts/shared": "*",
+    "@open-hearts/shared": "*",
     "express": "^4.21.1",
     "nanoid": "^5.0.9",
     "socket.io": "^4.8.1"
